@@ -632,13 +632,13 @@ public:
             for (int j = 0; j < w; j++) {
                 // 枠を黒に、塗りをいい感じに
                 stroke(0.5, 0.5, 0.5);
-                auto [r, g, b] = color((double) grid[i][j] / 100.0);
+                auto [r, g, b] = color((double) grid[i][j] / 100000.0);
                 fill(r / 256.0, g / 256.0, b / 256.0);
                 rect(j * len, i * len + len / 2, len, len);
                 // circle(j * len + len / 2, i * len + len, len / 2);
                 // 文字を記述
-                fill(0, 0, 0);
-                text(to_string(grid[i][j]), j * len + len / 2, i * len + 2 * len / 3 + len / 2, 4);
+                // fill(0, 0, 0);
+                // text(to_string(grid[i][j]), j * len + len / 2, i * len + 2 * len / 3 + len / 2, 4);
             }
         }
     }
@@ -729,32 +729,100 @@ public:
 private:
 };
 
+XRand rnd(283);
 int main() {
-    Graphics g;
+    Graphics graphics;
     Movie mov;
-    int w = 500;
-    int h = 500;
-
-    XRand rnd(283);
-
     // スクリーンの大きさを設定
-    g.screen(w, h);
+    graphics.screen(500, 500);
 
-    int n = 20;
-    vector <vector<int>> grid(n, vector<int>(n, 0));
-
-    for (int i = 0; i < 60 * 5; i++) {
-        // 画面消去
-        g.clear();
-        // グリッドを描画
-        for (int j = 0; j < 10; j++) {
-            grid[rnd.NextInt(0, n - 1)][rnd.NextInt(0, n - 1)] += rnd.NextInt(1, 10);
-        }
-        g.grid(grid);
-        mov.addFrame(g);
+    // 入力受け取り
+    int N; cin >> N;
+    vector<vector<char>> h(N - 1, vector<char>(N));
+    for (int i = 0; i < N - 1; i++) {
+        for (int j = 0; j < N; j++) cin >> h[i][j];
     }
+    vector<vector<char>> w(N, vector<char>(N - 1));
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N - 1; j++) cin >> w[i][j];
+    }
+    vector<vector<int>> d(N, vector<int>(N));
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) {
+            cin >> d[i][j];
+        }
+    }
+
+    // 出力受け取り
+    string ans = "RRRRRRRRRRRRRRRRRRRDDDDDDDDDDDDDDDDDDDLLLLLLLLLLLLLLLLLLLURRRRRRRRRRRRRRRRRRULLLLLLLLLLLLLLLLLLURRRRRRRRRRRRRRRRRRULLLLLLLLLLLLLLLLLLURRRRRRRRRRRRRRRRRRULLLLLLLLLLLLLLLLLLURRRRRRRRRRRRRRRRRRULLLLLLLLLLLLLLLLLLURRRRULLLLURRRRULLLLURRRRULLLLURRRRURRRRRRRRRRRRRRDDDDDDDLLLLLLLLLLLLLURRRRRRRRRRRRULLLLLLLLLLLLURRRRRRRRRRRRULLLLLLLLLLLLURRRRRRRRRRRRULLLLLLLLLLLLRRRRRRRRRRRRDLLLLLLLLLLLLDRRRRRRRRRRRRDLLLLLLLLLLLLDRRRRRRRRRRRRDLLLLLLLLLLLLDRRRRRRRRRRRRRUUUUUUUULLLLLLLLLLLLLLLDLLLURRURRRRRRRRRRRRRRRRLLLLLLLLLLLLLLLLLLRRDLLDRRRURRRRRRRRRRRRRRRDLLLLLLLLLLLLLLDLLLLDRRRRDLLLLDRRRRDLLLLDRRRRDLLLLDRRRRRRRRRRRRRRRRRRDLLLLLLLLLLLLLLLLLLDRRRRRRRRRRRRRRRRRRDLLLLLLLLLLLLLLLLLLDRRRRRRRRRRRRRRRRRRDLLLLLLLLLLLLLLLLLLDRRRRRRRRRRRRRRRRRRDLLLLLLLLLLLLLLLLLLDRRRRRRRRRRRRRRRRRRRUUUUUUUUUUUUUUUUUUULLLLLLLLLLLLLLLLLLL";
+    // string ans; cin >> ans;
+    vector<vector<int>> grid(N, vector<int>(N, 0));
+    int L = ans.size();
+    int ci = 0;
+    int cj = 0;
+    for (int t = 0; t < 2 * L; t++) {
+        char c = ans[t % L];
+        if (c == 'R') cj++;
+        if (c == 'L') cj--;
+        if (c == 'D') ci++;
+        if (c == 'U') ci--;
+        grid[ci][cj] = 0;
+
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                grid[i][j] += d[i][j];
+            }
+        }
+
+        if (t < L) continue;
+
+
+        graphics.clear();
+        graphics.grid(grid);
+
+        // 現在のマスを出力
+        const int len = 10;
+        graphics.fill(1, 1, 1);
+        graphics.rect(cj * len, ci * len + len / 2, len, len);
+
+        // 壁の情報
+        for (int i = 0; i < N - 1; i++) {
+            for (int j = 0; j < N; j++) {
+                if (h[i][j] == '1') {
+                    graphics.stroke(0, 0, 0);
+                    graphics.line(j * len + len + len / 2, i * len + len, j * len + 2 * len + len / 2, i * len + len);
+                }
+            }
+        }
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N - 1; j++) {
+                if (w[i][j] == '1') {
+                    graphics.stroke(0, 0, 0);
+                    graphics.line(j * len + len, i * len + len / 2, j * len + len, i * len + len + len / 2);
+                }
+            }
+        }
+        mov.addFrame(graphics);
+    }
+
+
+    // int n = 20;
+    // vector <vector<int>> grid(n, vector<int>(n, 0));
+
+    // for (int i = 0; i < 60 * 5; i++) {
+    //     // 画面消去
+    //     g.clear();
+    //     // グリッドを描画
+    //     for (int j = 0; j < 10; j++) {
+    //         grid[rnd.NextInt(0, n - 1)][rnd.NextInt(0, n - 1)] += rnd.NextInt(1, 10);
+    //     }
+    //     g.grid(grid);
+    //     mov.addFrame(g);
+    // }
+
+
     // 60FPS で書き出し
-    string html = mov.dumpHtml(60);
+    string html = mov.dumpHtml(30);
 
     // 動画を保存
     ofstream fout;
@@ -764,6 +832,6 @@ int main() {
     }
     fout << html << endl;
     fout.close();
-
     return 0;
 }
+
